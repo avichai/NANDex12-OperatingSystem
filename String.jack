@@ -1,0 +1,156 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/12/String.jack
+
+/**
+ * Represents a String object. Implements the String type.
+ */
+class String {
+	
+	field int length, maxLen;
+	field Array str;
+
+    /** Constructs a new empty String with a maximum length of maxLength. */
+    constructor String new(int maxLength) {
+		let length = 0;
+		let maxLen = maxLength;
+		if (maxLength > 0) {
+			let str = Array.new(maxLength);
+		}
+		return this;
+    }
+
+    /** De-allocates the string and frees its space. */
+    method void dispose() {
+		if (maxLen > 0) {
+			do str.dispose();
+		}
+		do Memory.deAlloc(this);
+		
+		return;
+	}
+
+    /** Returns the current length of this String. */
+    method int length() {
+		return length;
+	}
+
+    /** Returns the character at location j. */
+    method char charAt(int j) {
+		return str[j];
+	}
+
+    /** Sets the j'th character of this string to be c. */
+    method void setCharAt(int j, char c) {
+		let str[j] = c;
+		return;
+	}
+
+    /** Appends the character c to the end of this String.
+     *  Returns this string as the return value. */
+    method String appendChar(char c) {
+		if (length = maxLen) {	// todo: how should handle this case (delete if assuming wont happen)?
+		}
+		let str[length] = c;
+		let length = length + 1;
+		return this;
+	}
+
+    /** Erases the last character from this String. */
+    method void eraseLastChar() {
+		if (length = 0) {	// todo: how should handle this case (delete if assuming wont happen)?
+		}
+		let length = length - 1;
+		
+		return;
+    }
+
+	/* Returns the digit at index i, or -1 if the char isn't a digit. */
+	method boolean getDigit(int i) {
+		var int c;
+		let c = str[i] - 48;
+		if (~((c < 0) | (c > 9))) {
+			return c;
+		}
+		return -1;
+	}
+	
+    /** Returns the integer value of this String until the first non
+     *  numeric character. */
+    method int intValue() {
+		var int i;		// i - current char index
+		var int intVal;
+		var int digit;
+		var boolean isNeg, loop;
+		
+		if (length = 0) {
+			return 0;
+		}
+		
+		let isNeg = false;
+		let i = 0;
+		if (str[0] = 45) { 			// ascii('-') = 45
+			let isNeg = true;
+			let i = 1;
+		}
+		
+		let intVal = 0;
+		let loop = true;
+		while ((i < length) & (loop)) {
+			let digit = getDigit(i);
+			if (digit = -1) {		// the char isn't a digit.
+				let loop = false;
+			}
+			else {
+				let intVal = (intVal * 10) + digit;
+				let i = i + 1;
+			}
+		}
+		
+		if (isNeg) {
+			return -intVal;
+		}
+		return intVal;
+	}
+	
+	/* assumes number >= 0 */
+	method void setIntHelper(int number) {
+		var int lastDigit, divNumber;
+		
+		let divNumber = number / 10;
+		let lastDigit = number - (divNumber * 10); 	// lastDigit = number % 10
+		if (~(number < 10)) {
+			do setIntHelper(divNumber);
+		}
+		do appendChar(lastDigit + 48);
+		return;
+	}
+
+    /** Sets this String to hold a representation of the given number. */
+    method void setInt(int number) {
+		let length = 0;
+		if (number < 0) {
+			do appendChar(45);		// ascii('-') = 45
+			let number = - number;
+		}
+		do setIntHelper(number);	// number >= 0
+		
+		return;
+	}
+
+    /** Returns the new line character. */
+    function char newLine() {
+		return 128;
+    }
+
+    /** Returns the backspace character. */
+    function char backSpace() {
+		return 129;
+    }
+
+    /** Returns the double quote (") character. */
+    function char doubleQuote() {
+		return 34;
+    }
+}

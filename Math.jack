@@ -1,0 +1,156 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/12/Math.jack
+
+/**
+ * A basic math library.
+ */
+class Math {
+
+	static Array twoToThe;
+	static int res2QY; // to increase division efficiency, this variable stores the value of 2*q*y
+	
+    /** Initializes the library. */
+    function void init() {
+		let twoToThe = Math.initTwoToThe();
+		return;
+    }
+	
+	/* Initializes a 16 entries array of bit masks. 
+	 * bitMasks[i] = 1 in the i'th entry and 0 elsewhere. */
+	function Array initTwoToThe() {
+		var Array bitMasks;
+		var int i, value;
+		
+		let bitMasks = Array.new(16);
+		let i = 0;
+		let value = 1;
+		while (i < 16) {
+			let bitMasks[i] = value;
+			let value = value + value;
+			let i = i + 1;
+		}
+		return bitMasks;
+	}
+	
+	/* Returns true iff the i'th bit of x is 1. */
+	function boolean bit(int x, int i) {
+		return ~((x & twoToThe[i]) = 0);
+	}
+	
+    /** Returns the absolute value of x. */
+    function int abs(int x) {
+		if (x < 0) {
+			return -x;
+		}
+		return x;
+    }
+	
+    /** Returns the product of x and y. */
+    function int multiply(int x, int y) {
+		var int tmp, sum, shiftedX, i;
+
+		if ((x = 0) | (y = 0)) {
+			return 0;
+		}
+		
+		if (x < y) {	// swapping x and y to achieve efficiency
+			let tmp = x;
+			let x = y;
+			let y = tmp;
+		}
+		
+		let sum = 0;
+		let shiftedX = x;
+		let i = 0;
+		while (i < 16) {
+			if (Math.bit(y,i)) {
+				let sum = sum + shiftedX;
+			}
+			let shiftedX = shiftedX + shiftedX;
+			let i = i + 1;
+		}
+		
+		return sum;
+	}
+
+	// assumes x,y > 0 (checked in divide). 
+	function int divideHelper(int x, int y) {
+		var int q, cur2Q;
+		
+		/* y must be positive, so if y < 0 it means y overflowed and since
+		 * x > 0 also,it hold that actually y > x. */
+		if ((y > x) | (y < 0)) {
+			let res2QY = 0;
+			return 0;
+		}
+		
+		let q = Math.divideHelper(x, y + y);
+		let cur2Q = q + q;
+		if ((x - res2QY) < y) {	
+			return cur2Q;
+		}
+		else {
+			let res2QY = res2QY + y;
+			return cur2Q + 1;
+		}
+	}
+	
+    /** Returns the integer part of x/y. */
+    function int divide(int x, int y) {
+		var boolean isNeg;
+		var int res;
+		
+		if ((x = 0) | (y = 0)) {
+			return 0;
+		}
+		
+		let isNeg = (((x < 0) & (y > 0)) | ((x > 0) & (y < 0)));
+		let x = Math.abs(x);
+		let y = Math.abs(y);
+		
+		let res = Math.divideHelper(x, y);
+		if (isNeg) {
+			return -res;
+		}
+		return res;
+	}
+
+    /** Returns the integer part of the square root of x. */
+    function int sqrt(int x) {
+		var int y, i, tmp, squareTmp;
+		
+		if (x = 0) {
+			return 0;
+		}
+		
+		let y = 0;
+		let i = 7;
+		while (~(i < 0)) {
+			let tmp = y + twoToThe[i];
+			let squareTmp = tmp * tmp;
+			if (~((squareTmp) > x) & (squareTmp > 0)) {	
+				let y = tmp;
+			}
+			let i = i - 1;
+		}
+		return y;
+    }
+
+    /** Returns the greater number. */
+    function int max(int a, int b) {
+		if (a > b) {
+			return a;
+		}
+		return b;
+	}
+
+    /** Returns the smaller number. */
+    function int min(int a, int b) {
+		if (a < b) {
+			return a;
+		}
+		return b;
+    }
+}
